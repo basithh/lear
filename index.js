@@ -2,7 +2,21 @@ const express = require("express");
 const app = express();
 app.set('view engine', 'ejs');
 const bodyParser = require('body-parser');
-app.use(bodyParser.urlencoded({ extended: false }))
+const mongoose = require('mongoose');
+app.use(bodyParser.urlencoded({ extended: false }));
+
+
+
+mongoose.connect('mongodb://localhost:27017/sih', {useNewUrlParser: true, useUnifiedTopology: true});
+
+
+var tweetSchema = new mongoose.Schema({
+    name:String,
+    tw:String
+})
+
+var tweeter = mongoose.model('tweet', tweetSchema);
+
 
 // let Parser = require('rss-parser');
 // let parser = new Parser();
@@ -10,7 +24,7 @@ app.use(bodyParser.urlencoded({ extended: false }))
 
 
  
-// (async () => {
+// (async () => {n
  
 //     feed = await parser.parseURL('https://news.google.com/rss');
 
@@ -27,37 +41,73 @@ app.use(bodyParser.urlencoded({ extended: false }))
 //     res.render('index',{news:title,newslink:link})
 // });
 
-var tweet = [{
-    name:"unname",
-    tw:"Hello tweeter"
-},
-{
-    name:"ofte",
-    tw:"Welcome"
-},
-{
-    name:"gogy",
-    tw:"Hello folks"
+// var tweet = [{
+//     name:"unname",
+//     tw:"Hello tweeter"
+// },
+// {
+//     name:"ofte",
+//     tw:"Welcome"
+// },
+// {
+//     name:"gogy",
+//     tw:"Hello folks"
 
-}
-]
+// }
+// ]
 
 app.get('/',(req,res)=>{
-    res.render('tweet',{tweet});
+    var tweet ;
+    tweeter.find({},(err,twe)=>{
+        tweet=twe;
+        res.render('tweet',{tweet});
+    })
+    
 })
 
 app.get('/create',(req,res)=>{
     res.render('create')
 })
 
-app.post('/create',(req,res)=>{
-    var username =req.body.username;
-    var te = req.body.tweet;
-    var op ={
-        name:username,
-        tw:te
+user = [
+    {
+        username:"basith",
+        password:"basith"
     }
-    tweet.push(op)
+]
+
+app.get('/login',(req,res)=>{
+    res.render('login')
+})
+
+app.post('/login',(req,res)=>{
+    var username=  req.body.username;
+    var password = req.body.password;
+    user.forEach(obj => {
+        if(obj["username"]===username){
+            if(obj["password"]===password){
+                res.redirect("/")
+            }
+            else{
+                res.send("failed password");
+            }
+        }
+        else{
+            res.send("user not found");
+        }
+        
+    });
+})
+
+app.post('/create',(req,res)=>{
+    var username = req.body.username;
+    var te = req.body.tweet;
+    var stu = new tweeter({
+        name : username,
+        tw : te
+    });
+    stu.save();
+    // tweet.push(stu)
     res.redirect('/')
 })
 
